@@ -117,12 +117,12 @@ const typeDefs = `
     addBook(
       title: String!
       author: String!
-      published: Int!
+      published: String!
       genres: [String!]!
     ) : Book
     editAuthor(
       name: String!
-      setBorn: Int!
+      setBorn: String!
     ): Author
   }
 
@@ -157,6 +157,7 @@ const resolvers = {
         return {
           name: a.name,
           bookCount: count,
+          born: a.born,
         }
       })
       return res
@@ -164,7 +165,14 @@ const resolvers = {
   },
   Mutation: {
     addBook: (root, args) => {
-      const newBook = { ...args, id: uuid() }
+      if (
+        args.title ||
+        args.author ||
+        args.published == '' ||
+        args.genres == []
+      )
+        return args
+      const newBook = { ...args, id: uuid(), published: Number(args.published) }
       books = books.concat(newBook)
       const newAuthor = { name: newBook.author, id: uuid() }
       authors = authors.concat(newAuthor)
@@ -172,16 +180,20 @@ const resolvers = {
     },
     editAuthor: (root, { setBorn, name }) => {
       const author = authors.find((a) => a.name === name)
-      if (!author) {
-        throw new GraphQLError('Author not found', {
-          extensions: {
-            code: 'BAD_USER_INPUT',
-            invalidArgs: name,
-          },
-        })
+      if (!author || !setBorn) {
+        throw new GraphQLError(
+          !author ? 'Author not found' : 'Enter the born date',
+          {
+            extensions: {
+              code: 'BAD_USER_INPUT',
+              invalidArgs: name,
+            },
+          }
+        )
       }
 
-      const updatedAuthor = { ...author, born: setBorn }
+      const updatedAuthor = { ...author, born: Number(setBorn) }
+
       authors = authors.map((a) => (a.name === name ? updatedAuthor : a))
       return updatedAuthor
     },
