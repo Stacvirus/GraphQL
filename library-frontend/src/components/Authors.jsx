@@ -16,7 +16,7 @@ const Authors = (props) => {
 
   function handleErr(msg) {
     console.log(msg)
-    props.err(msg)
+    props.err(msg, 'red')
   }
   options = []
 
@@ -55,7 +55,18 @@ function BornForm({ setError }) {
     onError: (error) => {
       setError(error.graphQLErrors.map((e) => e.message).join('\n'))
     },
-    refetchQueries: [{ query: ALL_AUTHORS }],
+    // refetchQueries: [{ query: ALL_AUTHORS }],
+    update: (cache, res) => {
+      cache.updateQuery({ query: ALL_AUTHORS }, ({ allAuthors }) => {
+        return {
+          allAuthors: allAuthors.map((a) =>
+            a.name === res.data.editAuthor.name
+              ? { ...a, born: res.data.editAuthor.born }
+              : a
+          ),
+        }
+      })
+    },
   })
 
   function submit(e) {

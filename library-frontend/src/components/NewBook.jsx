@@ -10,22 +10,30 @@ const NewBook = (props) => {
   const [genres, setGenres] = useState([])
 
   const [addBook, result] = useMutation(ADD_BOOK, {
-    refetchQueries: [{ query: ALL_BOOKS }, { query: ALL_AUTHORS }],
     onError: (error) => {
-      props.setError('all inputs should be used')
+      console.log(error)
+      props.setError('all inputs should be used', 'red')
     },
+    refetchQueries: [{ query: ALL_AUTHORS }],
+    // update: (cache, res) => {
+    //   cache.updateQuery(
+    //     { query: ALL_BOOKS, variables: { genre: genres[0] } },
+    //     ({ allBooks }) => {
+    //       return {
+    //         allBooks: allBooks.concat(res.data.addBook),
+    //       }
+    //     }
+    //   )
+    // },
   })
-
-  // if (!props.show) {
-  //   return null
-  // }
 
   const submit = async (event) => {
     event.preventDefault()
-    if (result.data && result.data.addBook.author == '') return
+    console.log(result.data)
+    // if (result.data && result.data.addBook.author == '') return
     addBook({ variables: { title, author, published, genres } })
 
-    console.log('add book...', typeof published)
+    console.log({ title, author, published, genres })
 
     setTitle('')
     setPublished('')
@@ -59,7 +67,7 @@ const NewBook = (props) => {
         <div>
           published
           <input
-            type="number"
+            type="Number"
             value={published}
             onChange={({ target }) => setPublished(target.value)}
           />
